@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trạng thái Lead CRM – Mbro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#FFFFFF; --panel:#F3F5FC; --ink:#131C5A; --muted:#5A6290; --line:#D9DEF2;
+  --blue:#2436D1; --pink:#D1006F; --slate:#6A7294; --green:#0B8457; --amber:#B25E00; --teal:#0A7C86; --op:#7A3FD1; --red:#D92D20; --node:#FFFFFF;
+  --shadow:0 1px 2px rgba(19,28,90,.08),0 4px 14px rgba(19,28,90,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1233; --panel:#161B45; --ink:#E9ECFF; --muted:#A3AAD6; --line:#2B3270;
+    --blue:#7C8BFF; --pink:#FF5CA8; --slate:#A0A7C8; --green:#3FD29A; --amber:#FFB35C; --teal:#4FD1DB; --op:#B89BFF; --red:#FF6B6B; --node:#1B2150;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1233; --panel:#161B45; --ink:#E9ECFF; --muted:#A3AAD6; --line:#2B3270;
+  --blue:#7C8BFF; --pink:#FF5CA8; --slate:#A0A7C8; --green:#3FD29A; --amber:#FFB35C; --teal:#4FD1DB; --op:#B89BFF; --red:#FF6B6B; --node:#1B2150;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px;line-height:1.45}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+.rail{background:var(--panel);border-right:1px solid var(--line);padding:26px 16px;display:flex;flex-direction:column;gap:18px}
+.rail h1{font-size:20px;line-height:1.25;margin:0 6px;font-weight:700;letter-spacing:-.01em}
+.rail p.sub{margin:4px 6px 0;color:var(--muted);font-size:13px}
+.rail .cap{margin:0 6px -8px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.track{list-style:none;margin:0;padding:0;position:relative}
+.track::before{content:"";position:absolute;left:25px;top:22px;bottom:22px;width:2px;background:var(--line)}
+.st{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:transparent;padding:9px 10px;border-radius:12px;cursor:pointer}
+.st:hover{background:color-mix(in srgb,var(--c) 8%,transparent)}
+.st .dot{position:relative;z-index:1;flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--bg);color:var(--c);border:2px solid var(--c)}
+.st .nm{font-weight:600}
+.st .hint{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+.st[aria-selected="true"]{background:var(--node);box-shadow:var(--shadow)}
+.st[aria-selected="true"] .dot{background:var(--c);color:#fff}
+.legend{margin-top:auto;display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted);padding:0 6px}
+.legend span{display:flex;align-items:center;gap:8px}
+.legend i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+
+.main{display:flex;flex-direction:column;min-width:0}
+.head{padding:24px 32px 0}
+.head .eyebrow{font-size:13px;color:var(--muted);font-weight:500}
+.head h2{margin:0;font-size:28px;font-weight:700;letter-spacing:-.02em;color:var(--c)}
+.head .def{margin:4px 0 0;color:var(--muted);max-width:72ch}
+
+/* dải hành trình 5 giai đoạn */
+.journey{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:18px 32px 0;padding:0;list-style:none}
+.jstep{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--node);opacity:.55;transition:opacity .2s}
+.jstep.on{opacity:1;border:2px solid var(--c);box-shadow:var(--shadow)}
+.jstep .no{font-size:12px;font-weight:600;color:var(--muted)}
+.jstep .nm{font-weight:600;font-size:13.5px;line-height:1.3;margin-top:2px}
+.jstep .who{font-size:12px;color:var(--muted);margin-top:2px}
+.jstep .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.chip{font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 8px;border:1.5px solid var(--sc);color:var(--sc);background:transparent;cursor:pointer}
+.chip.cur{background:var(--sc);color:#fff}
+
+.keys{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin:16px 32px 0;font-size:12.5px;color:var(--muted)}
+.keys .k{display:flex;align-items:center;gap:7px}
+.sw{display:inline-block}
+.sw.status{width:26px;height:14px;border-radius:999px;background:var(--c)}
+.sw.stage{width:22px;height:14px;border-radius:4px;background:color-mix(in srgb,var(--c) 14%,var(--node));border:2px solid var(--c)}
+.sw.task{width:14px;height:14px;border-radius:50%;border:2px solid var(--c)}
+.sw.script{width:18px;height:14px;border-radius:6px 6px 6px 1px;border:2px solid var(--teal)}
+.sw.ts{width:18px;height:14px;border-radius:4px;border:2px solid var(--op)}
+.sw.reason{width:14px;height:14px;border-radius:3px;background:var(--amber)}
+.sw.rule{width:22px;height:14px;border-radius:4px;border:1.5px dashed var(--slate)}
+.keys .tools{margin-left:auto;display:flex;gap:8px}
+.tools button{border:1px solid var(--line);background:var(--node);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;color:var(--ink)}
+.tools button:hover{border-color:var(--c)}
+
+.canvas{position:relative;flex:1;overflow:auto;padding:20px 32px 40px}
+.mm{position:relative;display:grid;grid-template-columns:max-content auto max-content;align-items:center;column-gap:56px;width:max-content;margin:0 auto}
+.mm svg{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.side{display:flex;flex-direction:column;gap:20px;position:relative;z-index:1}
+.side.left{align-items:flex-end}
+.center{position:relative;z-index:1;max-width:220px;padding:14px 22px;border-radius:999px;background:var(--c);color:#fff;text-align:center;box-shadow:var(--shadow)}
+.center .cap{display:block;font-size:11.5px;opacity:.85}
+.center b{display:block;font-size:19px;line-height:1.2}
+
+.branch{display:flex;align-items:center;gap:40px}
+.left .branch{flex-direction:row-reverse}
+.bnode{flex:none;width:188px;border-radius:12px;padding:8px 12px;cursor:pointer;text-align:left;background:var(--node);border:1.5px solid var(--line);display:block}
+.bnode .cap{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.bnode .t{display:block;font-weight:600;font-size:14px;line-height:1.3;margin-top:1px}
+.bnode .who{display:inline-block;margin-top:6px;font-size:11.5px;font-weight:600;border-radius:6px;padding:1px 7px;background:var(--c);color:#fff}
+.bnode .tg{font-weight:500}
+.b-stage .bnode{background:color-mix(in srgb,var(--c) 12%,var(--node));border:2px solid var(--c)}
+.b-stage .bnode .cap{color:var(--c)}
+.b-flow .bnode{border:1.5px solid var(--ink)}
+.b-reason .bnode{border:2px solid var(--amber)}
+.b-reason .bnode .cap{color:var(--amber)}
+.b-script .bnode{border:2px solid var(--teal);border-radius:12px 12px 12px 2px}
+.b-script .bnode .cap{color:var(--teal)}
+.kid.say{max-width:340px;border-radius:12px 12px 12px 2px}
+.kid.say.nv{border-color:color-mix(in srgb,var(--teal) 45%,var(--line))}
+.kid.say.nv b{color:var(--teal)}
+.kid.say.kh{color:var(--muted);box-shadow:none;border-style:dashed}
+.kid.say mark{background:color-mix(in srgb,var(--teal) 16%,transparent);color:inherit;border-radius:4px;padding:0 2px}
+.b-warn .bnode{border:2px solid var(--red);background:color-mix(in srgb,var(--red) 8%,var(--node))}
+.b-warn .bnode .cap,.b-warn .bnode .t{color:var(--red)}
+.b-warn .kid{border:2px solid var(--red);color:var(--red);font-weight:600;background:color-mix(in srgb,var(--red) 8%,var(--node))}
+.b-warn .kid::before{content:"⚠ "}
+.b-rule .bnode{border:1.5px dashed var(--slate)}
+.branch.closed .bnode{opacity:.75}
+.branch.closed .bnode .tg::after{content:" (mở)"}
+.kids{display:flex;flex-direction:column;gap:6px}
+.left .kids{align-items:flex-end}
+.branch.closed .kids{display:none}
+.kid{width:max-content;max-width:260px;background:var(--node);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13.5px;box-shadow:var(--shadow);position:relative}
+.b-stage .kid{padding-left:28px}
+.b-stage .kid::before{content:"";position:absolute;left:9px;top:10px;width:11px;height:11px;border-radius:50%;border:2px solid var(--c)}
+.b-reason .kid{border-left:4px solid var(--amber)}
+.b-rule .kid{color:var(--muted);box-shadow:none;border-style:dashed}
+.kid.sub{font-size:12.5px;color:var(--muted);box-shadow:none}
+.kid.st-pill{border:0;border-radius:14px;padding:7px 14px;background:var(--gc);color:#fff;cursor:pointer;text-align:left;display:block}
+.kid.st-pill b{display:block;font-size:14px}
+.kid.st-pill span{display:block;font-size:12px;opacity:.9}
+.kid.st-pill:hover{filter:brightness(1.08)}
+.krow{display:flex;align-items:center;gap:30px}
+.left .krow{flex-direction:row-reverse}
+.ksub{display:flex;flex-direction:column;gap:6px}
+.warn{font-style:normal;display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;font-weight:700;color:#fff;background:var(--red);border-radius:6px;padding:3px 8px}
+.alert{display:none;margin:10px 0 0;max-width:72ch;border:2px solid var(--red);color:var(--red);background:color-mix(in srgb,var(--red) 8%,var(--bg));border-radius:10px;padding:8px 12px;font-weight:600;font-size:14px}
+.alert.show{display:block}
+.kid.ts{display:block;text-align:left;cursor:pointer;max-width:300px;border:2px solid var(--op);border-radius:14px;padding:8px 12px;background:color-mix(in srgb,var(--op) 7%,var(--node))}
+.kid.ts b{color:var(--op);font-size:13.5px;display:block}
+.kid.ts ul{margin:4px 0 0;padding-left:16px;font-size:12.5px}
+.kid.ts li{margin:2px 0}
+.kid.ts .more{display:block;margin-top:4px;font-size:12px;font-weight:600;color:var(--op);text-decoration:underline}
+.kid.ts:hover{background:color-mix(in srgb,var(--op) 12%,var(--node))}
+.kid.end{border-style:dashed;color:var(--muted);box-shadow:none}
+.enter{animation:pop .35s ease-out both}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.enter{animation:none}.jstep{transition:none}}
+
+@media (max-width: 1100px){.journey{grid-template-columns:repeat(5,minmax(150px,1fr));overflow-x:auto}}
+@media (max-width: 900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{min-width:0}
+  .rail{border-right:0;border-bottom:1px solid var(--line);padding:16px 14px;gap:10px}
+  .track{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+  .track::before,.legend,.st .hint,.rail .cap{display:none}
+  .st{white-space:nowrap;padding:6px 10px 6px 6px}
+  .st .dot{width:26px;height:26px;font-size:12px}
+  .head{padding:18px 16px 0}.head h2{font-size:23px}
+  .journey{margin:14px 16px 0;display:flex;overflow-x:auto}
+  .jstep{flex:0 0 170px}
+  .keys{margin:14px 16px 0}.keys .tools{margin-left:0}
+  .canvas{padding:16px 16px 32px}
+  .mm{grid-template-columns:1fr;width:auto;row-gap:20px}
+  .center{max-width:none;text-align:left;border-radius:16px}
+  .side,.side.left{padding-left:34px;align-items:stretch}
+  .branch,.left .branch{flex-direction:column;align-items:flex-start;gap:8px}
+  .bnode{width:auto;min-width:200px}
+  .kids,.left .kids{align-items:stretch;padding-left:36px;width:100%}
+  .kid{width:auto;max-width:none}
+  .krow,.left .krow{flex-direction:column;align-items:stretch;gap:6px}
+  .ksub{padding-left:30px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div>
+      <h1>Hành trình Lead CRM – Mbro</h1>
+      <p class="sub">Chọn một trạng thái Lead để xem nó thuộc giai đoạn nào, ai làm gì và Lead đi tiếp ra sao. Áp dụng Line UB và RM (INDIV).</p>
+    </div>
+    <p class="cap">Trạng thái Lead trên Mbro</p>
+    <ol class="track" id="track" role="tablist" aria-label="Trạng thái Lead"></ol>
+    <div class="legend">
+      <span style="--c:var(--blue)"><i></i>Đang xử lý</span>
+      <span style="--c:var(--slate)"><i></i>Dừng trước khi tư vấn</span>
+      <span style="--c:var(--pink)"><i></i>Dừng sau khi tư vấn</span>
+      <span style="--c:var(--green)"><i></i>Thành công</span>
+    </div>
+  </aside>
+  <main class="main" id="main">
+    <div class="head">
+      <div class="eyebrow">Trạng thái Lead</div>
+      <h2 id="title"></h2>
+      <p class="def" id="def"></p>
+      <p class="alert" id="alert" role="alert"></p>
+    </div>
+    <ol class="journey" id="journey" aria-label="Hành trình 5 giai đoạn"></ol>
+    <div class="keys" aria-label="Chú giải sơ đồ">
+      <span class="k"><i class="sw status"></i>Trạng thái Lead</span>
+      <span class="k"><i class="sw stage"></i>Giai đoạn và người thực hiện</span>
+      <span class="k"><i class="sw task"></i>Việc cần làm</span>
+      <span class="k"><i class="sw script"></i>Kịch bản gọi</span>
+      <span class="k"><i class="sw ts"></i>Telesale hỗ trợ</span>
+      <span class="k"><i class="sw reason"></i>Lý do</span>
+      <span class="k"><i class="sw rule"></i>Quy định, chỉ số</span>
+      <span class="tools"><button type="button" id="openAll">Mở tất cả</button><button type="button" id="closeAll">Thu gọn</button></span>
+    </div>
+    <div class="canvas" id="canvas" role="tabpanel"></div>
+  </main>
+</div>
+
+<script>
+const C={blue:"var(--blue)",slate:"var(--slate)",pink:"var(--pink)",green:"var(--green)"};
+/* Giai đoạn của hành trình */
+const G=[
+ {n:1,t:"Gợi mở và KYC",who:"UB/RM",st:["khtn"]},
+ {n:2,t:"Hội ý và phân tích nhu cầu",who:"UB/RM cùng IC",st:["khtn"]},
+ {n:3,t:"Xác định nhu cầu và lịch hẹn",who:"IC (Telesale khi IC quá tải)",st:["dagoi","kdk"]},
+ {n:4,t:"Gặp mặt và tư vấn",who:"UB/RM cùng IC",st:["tuvan"]},
+ {n:5,t:"Chốt deal hoặc từ chối",who:"IC",st:["tuchoi","chot","phathanh"]}
+];
+/* kind: stage | from | next | reason | rule */
+const S=[
+ {id:"khtn",name:"KHTN mới",hint:"Lead vừa refer sang Mbro",c:C.blue,
+  def:"Lead được banker refer từ CRM MB sang Mbro. Đây là trạng thái đầu tiên của mọi Lead; Lead giữ trạng thái này qua giai đoạn 1 và 2.",
+  alert:"⚠ Lưu ý: nếu IC gặp KH ngay tại quầy và chuyển Lead sang Đang tư vấn, Lead sẽ được tính vào tỷ lệ chuyển đổi của IC.",
+  b:[
+   {kind:"stage",n:1,t:"Gợi mở và KYC",who:"UB/RM",k:[
+     "KYC tài chính: tiết kiệm, thẻ tín dụng, bất động sản, trái phiếu",
+     "KYC nhân thân: vợ/chồng, bố/mẹ, con",
+     "Tìm hiểu kế hoạch, tương lai, mối quan tâm đang có của KH",
+     "Đặt câu hỏi để am hiểu KH (điện thoại hoặc gặp mặt)",
+     "Gợi mở nhu cầu: BV tài chính, BV khoản vay, BV quỹ học vấn, BV sức khỏe, BV quỹ hưu trí, BV thu nhập, thừa kế",
+     "Refer Lead từ CRM sang Mbro"]},
+   {kind:"stage",n:2,t:"Hội ý và phân tích nhu cầu",who:"UB/RM cùng IC",k:[
+     "Trao đổi toàn bộ thông tin UB/RM đã khai thác",
+     "Chuẩn bị kịch bản tư vấn theo nhóm nhu cầu đã khai thác trước đó",
+     "Xác định case size mục tiêu phù hợp với nhu cầu và tài chính của KH đã KYC trước đó"]},
+   {kind:"next",k:[{go:"dagoi",s:"IC gọi điện cho KH theo kịch bản (đã được chỉnh sửa từ P.Bancas MB)",link:"kdk"},{go:"kdk",s:"IC gọi hoặc gặp trực tiếp, hoặc sau cuộc gọi ở KH đã gọi mà Lead không đủ ĐK"},{go:"tuvan",s:"IC gặp KH ngay tại quầy và tư vấn"},{ts:1}]},
+   {kind:"rule",t:"Phân bổ Lead và công suất của IC",k:[
+     "IC chi nhánh nào nhận Lead của chi nhánh đó",
+     "Lead dư công suất: từ Lead thứ 21 IC nhận trong ngày, hoặc IC không gọi trên App Call trong 24h ngày làm việc kể từ khi Lead vào Mbro",
+     "Lead dư công suất tự động đẩy sang Mbro của Telesale"]},
+   {kind:"rule",t:"Phạm vi áp dụng",k:["Line UB: quầy, Priority LV3/LV4, Private","Line RM INDIV","Chưa áp dụng RM SME, RM CIB"]},
+   {kind:"rule",t:"Chỉ số theo dõi",k:["SL Lead/UB hoặc RM","SL Lead/IC/tháng","SL Lead/ngày/IC"]}
+  ]},
+ {id:"dagoi",name:"KH đã gọi",hint:"IC đã gọi, Lead đủ ĐK",c:C.blue,
+  def:"IC đã nhận Lead và gọi cho KH theo kịch bản; Lead đủ điều kiện để hẹn gặp tư vấn.",
+  b:[
+   {kind:"from",k:[{go:"khtn",s:"Sau khi banker refer và hội ý"}]},
+   {kind:"stage",n:3,t:"Xác định nhu cầu và lịch hẹn",who:"IC",k:[
+     "IC gọi KH theo kịch bản gọi Lead (đã được chỉnh sửa từ P Bancas MB)",
+     "Nhắc lại với KH về banker đã refer",
+     "Nhắc lại nhu cầu của KH",
+     "Chốt lịch hẹn: thời gian và địa điểm gặp",
+     "Bấm “Đã gọi KH” trên Mbro khi Lead đủ ĐK"]},
+   {kind:"stage",n:"3'",t:"Gọi Lead dư công suất",who:"Telesale MBL",k:[
+     "Gọi Lead trong 24h ngày làm việc kể từ khi nhận",
+     "Nhắc lại banker refer, nhu cầu và lịch hẹn với KH",
+     "Lead đạt: trả về đúng IC ban đầu kèm nhu cầu, thời gian, địa điểm gặp",
+     "Lead không đạt: chuyển Không đủ ĐK"]},
+   {kind:"script",n:1,t:"Chào hỏi và gợi mở vấn đề",k:[
+     {say:"NV",t:"Em chào Anh/Chị, vui lòng cho em hỏi Anh/Chị [Họ tên Khách hàng] đang nghe máy phải không ạ?"},
+     {say:"KH",t:"…"},
+     {say:"NV",t:"Em là [Tên NV] - kết nối với Anh/Chị từ Phòng Dịch vụ khách hàng của Công ty MB Life - là thành viên của Tập đoàn MB."}]},
+   {kind:"script",n:2,t:"Khai thác nhu cầu",k:[
+     {say:"NV",t:"Em có nhận được thông tin chia sẻ từ Anh/Chị [Tên UB/RM] – Chuyên viên quản lý khách hàng tại chi nhánh [Tên chi nhánh MB] cho biết Anh/Chị đang quan tâm đến các giải pháp tài chính \"Bảo vệ tài chính, thu nhập, tích lũy, chăm sóc sức khỏe, quỹ hưu trí\" phải không ạ? Vì vậy, Em xin phép liên hệ lại để hỗ trợ Anh/Chị xác định nhu cầu và sắp xếp Chuyên viên tư vấn phù hợp với Anh/Chị ạ?"},
+     {say:"KH",t:"…"},
+     {say:"NV",t:"Vậy, thời gian nào có thể phù hợp với Anh/Chị ạ?"}]},
+   {kind:"next",k:[{go:"tuvan",s:"IC gặp được KH và tư vấn"},{go:"kdk",s:"Lead không đảm bảo chất lượng: KH không có nhu cầu, KH không cho gặp, KH không giải ngân, KH từ chối tư vấn bảo hiểm, thời gian gặp quá xa và không đảm bảo performance của IC"}]},
+   {kind:"rule",t:"Quy định và lưu ý",k:[
+     "Không gọi được KH hoặc thông tin hội ý sai: IC trao đổi lại với banker",
+     "Mbro nhắc thông báo nếu Telesale chưa gọi",
+     "HĐ từ Lead Telesale vẫn tính cho IC; Telesale (Khối OP) không chốt deal",
+     "Lead gặp tại quầy không đi qua trạng thái này",
+     "App Call (dự kiến): tự động chuyển KHTN mới sang Đã gọi KH"]},
+   {kind:"rule",t:"Chỉ số theo dõi",k:["SL Lead gọi/IC/ngày và /tháng","Tỷ lệ liên lạc được (App Call)","Chất lượng cuộc gọi theo kịch bản","Chất lượng Lead theo phản hồi KH"]}
+  ]},
+ {id:"kdk",name:"Không đủ ĐK",hint:"Dừng trước khi tư vấn",c:C.slate,
+  def:"IC gọi hoặc gặp KH tại sàn giao dịch nhưng Lead không đủ điều kiện để tư vấn. Lead dừng ở giai đoạn 3.",
+  b:[
+   {kind:"from",k:[{go:"khtn",s:"IC gọi hoặc gặp trực tiếp"},{go:"dagoi",s:"Sau cuộc gọi, Lead không đủ ĐK"},"Telesale gọi, Lead không đạt (luồng 3)"]},
+   {kind:"stage",n:3,t:"Xác định nhu cầu và lịch hẹn",who:"IC",k:[
+     "Gọi KH hoặc gặp tại quầy",
+     "Trao đổi lại với banker trước khi chuyển trạng thái",
+     "Chọn Không đủ ĐK và lý do trên Mbro"]},
+   {kind:"reason",t:"Không liên hệ được KH",k:["KH không nghe máy, máy bận/tắt máy, số điện thoại đã bỏ",{x:"Xử lý: RM/UB đặt lại lịch hẹn; IC chỉ tiếp nhận khi gặp được KH"}]},
+   {kind:"reason",t:"KH từ chối tư vấn",k:["Nhu cầu chưa gợi mở rõ, KH chưa nắm nội dung, thời điểm chưa phù hợp","KH báo không vay, không giải ngân khi IC gọi",{x:"Xử lý: RM/UB rà soát lại nhu cầu, hẹn lại theo thời gian của IC; IC chỉ tiếp nhận khi KH đồng ý nghe"}]},
+   {kind:"reason",t:"KH refer trùng",k:["Lead đã được refer trước đó"]},
+   {kind:"reason",t:"KH quá tuổi hoặc sức khỏe",k:["KH quá tuổi mua hoặc có vấn đề sức khỏe",{x:"Xử lý: không tiếp cận tiếp"}]},
+   {kind:"next",k:[{end:"Lead dừng; Mbro đồng bộ trạng thái và lý do về CRM để MB làm việc với chi nhánh"}]},
+   {kind:"rule",t:"Quy định",k:[
+     "Chỉ chuyển sau khi đã trao đổi với banker và không có thay đổi",
+     "Loại khỏi mẫu số tỷ lệ chuyển đổi"]}
+  ]},
+ {id:"tuvan",name:"Đang tư vấn",hint:"IC gặp KH và tư vấn",c:C.blue,
+  def:"IC đã gặp được KH và tư vấn bảo hiểm.",
+  alert:"⚠ Lưu ý: Lead chuyển sang Đang tư vấn sẽ được tính vào tỷ lệ chuyển đổi của IC.",
+  b:[
+   {kind:"from",k:[{go:"dagoi",s:"Sau cuộc gọi hẹn gặp"},{go:"khtn",s:"Gặp KH ngay tại quầy"}]},
+   {kind:"stage",n:4,t:"Gặp mặt và tư vấn",who:"UB/RM cùng IC",k:[
+     "Thiết kế giải pháp dựa vào nhu cầu UB/RM đã gợi mở",
+     "Dựa vào tài chính KH đã hội ý",
+     "Dựa vào mong muốn, kế hoạch của KH",
+     "Trình bày giải pháp giải quyết nhu cầu và bảo vệ kế hoạch của KH"]},
+   {kind:"stage",n:"Tại quầy",t:"Lead gặp ngay tại quầy",who:"UB/RM → IC",k:[
+     "UB/RM giao dịch, KYC, gợi mở nhu cầu",
+     "Chuyển giao nhu cầu cho IC ngay tại quầy",
+     "IC làm rõ nhu cầu bằng câu hỏi tại quầy",
+     "IC chọn Đang tư vấn hoặc Không đủ ĐK"]},
+   {kind:"next",k:[{go:"chot",s:"KH đồng ý mua"},{go:"tuchoi",s:"KH không mua sau khi tư vấn"}]},
+   {kind:"warn",t:"Lưu ý",k:["KH không giải ngân ở bước này ghi nhận là KH từ chối (lý do KH không giải ngân), không chuyển Không đủ ĐK"]}
+  ]},
+ {id:"tuchoi",name:"KH từ chối",hint:"Dừng sau khi tư vấn",c:C.pink,
+  def:"IC đã gặp và tư vấn nhưng KH từ chối mua bảo hiểm. Lead kết thúc ở giai đoạn 5.",
+  b:[
+   {kind:"from",k:[{go:"tuvan",s:"Sau buổi tư vấn"}]},
+   {kind:"stage",n:5,t:"Kết thúc không thành công",who:"IC",k:["Chọn KH từ chối và lý do trên Mbro"]},
+   {kind:"reason",t:"Lý do từ chối",k:["Gia đình không cho tham gia","Mức phí chưa phù hợp","KH cân nhắc về quyền lợi","KH cần thời gian suy nghĩ thêm","Đã mua của bên khác","KH không tin về bảo hiểm","KH thấy sản phẩm chưa phù hợp","KH không giải ngân"]},
+   {kind:"next",k:[{end:"Lead dừng tại Mbro"}]},
+   {kind:"rule",t:"Khác gì Không đủ ĐK",k:["Không đủ ĐK: chưa gặp tư vấn, dừng ở bước gọi hoặc tại quầy","KH từ chối: đã gặp và tư vấn","Vẫn nằm trong mẫu số tỷ lệ chuyển đổi"]}
+  ]},
+ {id:"chot",name:"Chốt HĐ",hint:"Đã submit, chờ phát hành",c:C.green,
+  def:"KH đồng ý mua, IC đã submit HĐ lên Mbro nhưng HĐ chưa phát hành.",
+  b:[
+   {kind:"from",k:[{go:"tuvan",s:"KH đồng ý sau tư vấn"}]},
+   {kind:"stage",n:5,t:"Chốt hợp đồng và hoàn thiện",who:"IC",k:["Submit HĐ lên Mbro","Hoàn thiện hồ sơ để HĐ được phát hành"]},
+   {kind:"next",k:[{go:"phathanh",s:"HĐ được phát hành"}]},
+   {kind:"rule",t:"Ghi nhận",k:["Tính cho IC nhận Lead, kể cả Lead đã qua Telesale","Chưa vào tử số tỷ lệ chuyển đổi cho đến khi phát hành"]}
+  ]},
+ {id:"phathanh",name:"Phát hành",hint:"HĐ đã phát hành",c:C.green,
+  def:"HĐ sau khi submit lên Mbro đã được phát hành. Đây là điểm kết thúc thành công của Lead.",
+  b:[
+   {kind:"from",k:[{go:"chot",s:"Từ HĐ đã submit"}]},
+   {kind:"stage",n:5,t:"Chốt deal thành công",who:"IC",k:["HĐ phát hành, ghi nhận cho IC ban đầu"]},
+   {kind:"next",k:[{end:"Lead kết thúc thành công (luồng 1 hoặc luồng 2)"}]},
+   {kind:"rule",t:"Tỷ lệ chuyển đổi",k:["SL HĐ phát hành ÷ (Tổng Lead − Lead Không đủ ĐK)","Tính theo tháng refer (cohort)","HĐ phát hành tháng sau vẫn tính cho tháng refer"]},
+   {kind:"rule",t:"Luồng kết thúc",k:["Luồng 1: UB/RM → IC → Done deal","Luồng 2: UB/RM → IC → Telesale → IC → Done deal"]}
+  ]}
+];
+const byId=Object.fromEntries(S.map(s=>[s.id,s]));
+const track=document.getElementById("track"),canvas=document.getElementById("canvas"),journey=document.getElementById("journey");
+const esc=t=>String(t).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+S.forEach((s,i)=>{
+  const li=document.createElement("li");
+  li.innerHTML=`<button class="st" role="tab" id="tab-${s.id}" style="--c:${s.c}" aria-selected="false"><span class="dot">${i+1}</span><span><span class="nm">${esc(s.name)}</span><span class="hint">${esc(s.hint)}</span></span></button>`;
+  li.firstElementChild.addEventListener("click",()=>select(s.id));
+  track.appendChild(li);
+});
+
+function kidHTML(k,kind){
+  if(typeof k==="string") return `<div class="kid">${esc(k)}</div>`;
+  if(k.ts) return `<button type="button" class="kid ts" data-go="dagoi"><b>Lead quá tải: chuyển Telesale MBL gọi hỗ trợ IC</b>
+    <ul><li>Khi nào: từ Lead thứ 21 IC nhận trong ngày, hoặc IC không gọi trên App Call trong 24h ngày làm việc</li>
+    <li>Lead tự động chuyển sang Mbro của Telesale; Telesale gọi trong 24h ngày làm việc</li>
+    <li>Lead đạt: trả về IC ban đầu kèm nhu cầu, thời gian, địa điểm gặp</li>
+    <li>Lead không đạt: chuyển Không đủ ĐK</li></ul><span class="more">Xem Giai đoạn 3' ở KH đã gọi</span></button>`;
+  if(k.say){const t=esc(k.t).replace(/\[([^\]]+)\]/g,'<mark>[$1]</mark>');return `<div class="kid say ${k.say==="KH"?"kh":"nv"}"><b>${k.say}:</b> ${t}</div>`;}
+  if(k.x) return `<div class="kid sub">${esc(k.x)}</div>`;
+  if(k.end) return `<div class="kid end">${esc(k.end)}</div>`;
+  const g=byId[k.go];
+  if(k.then) return `<div class="krow">${kidHTML({go:k.go,s:k.s})}<div class="ksub">${k.then.map(kidHTML).join("")}</div></div>`;
+  const w=(kind==="next"&&g.id==="tuvan")?`<em class="warn">⚠ Tính vào tỷ lệ chuyển đổi</em>`:"";
+  return `<button type="button" class="kid st-pill" data-go="${g.id}"${k.link?` data-link="${k.link}"`:""} style="--gc:${g.c}"><b>${esc(g.name)}</b><span>${esc(k.s)}</span>${w}</button>`;
+}
+const CAP={from:["Đến từ trạng thái","Trạng thái trước đó"],next:["Chuyển sang trạng thái","Trạng thái tiếp theo"]};
+function branchHTML(b,i){
+  let head,cls;
+  if(b.kind==="stage"){cls="b-stage";
+    const lab=typeof b.n==="number"?"Giai đoạn "+b.n:(b.n==="3'"?"Giai đoạn 3'":b.n);
+    head=`<span class="cap"><span>${esc(lab)}</span><span class="tg">${b.k.length} việc</span></span><span class="t">${esc(b.t)}</span><span class="who">${esc(b.who)}</span>`;}
+  else if(b.kind==="from"||b.kind==="next"){cls="b-flow";
+    head=`<span class="cap"><span>${b.kind==="from"?"Đến từ":"Đi tiếp"}</span><span class="tg"></span></span><span class="t">${CAP[b.kind][1]}</span>`;}
+  else if(b.kind==="script"){cls="b-script";head=`<span class="cap"><span>Kịch bản gọi, bước ${b.n}</span><span class="tg"></span></span><span class="t">${esc(b.t)}</span>`;}
+  else if(b.kind==="warn"){cls="b-warn";head=`<span class="cap"><span>⚠ Cảnh báo</span><span class="tg"></span></span><span class="t">${esc(b.t)}</span>`;}
+  else if(b.kind==="reason"){cls="b-reason";head=`<span class="cap"><span>Lý do</span><span class="tg"></span></span><span class="t">${esc(b.t)}</span>`;}
+  else {cls="b-rule";head=`<span class="cap"><span>Quy định, chỉ số</span><span class="tg"></span></span><span class="t">${esc(b.t)}</span>`;}
+  return `<div class="branch ${cls}" data-i="${i}"><button type="button" class="bnode" aria-expanded="true">${head}</button><div class="kids">${b.k.map(k=>kidHTML(k,b.kind)).join("")}</div></div>`;
+}
+
+let current=null;const MQ=matchMedia("(max-width: 900px)");MQ.addEventListener("change",()=>current&&select(current.id,false));
+function renderJourney(s){
+  journey.innerHTML=G.map(g=>{
+    const on=g.st.includes(s.id);
+    return `<li class="jstep${on?" on":""}"><div class="no">Giai đoạn ${g.n}</div><div class="nm">${esc(g.t)}</div><div class="who">${esc(g.who)}</div>
+      <div class="chips">${g.st.map(id=>`<button type="button" class="chip${id===s.id?" cur":""}" data-go="${id}" style="--sc:${byId[id].c}">${esc(byId[id].name)}</button>`).join("")}</div></li>`}).join("");
+  journey.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>select(c.dataset.go)));
+  const on=journey.querySelector(".on");if(on)journey.scrollLeft=on.offsetLeft-journey.offsetLeft-8;
+}
+function select(id,push=true){
+  const s=byId[id]; if(!s) return; current=s;
+  document.querySelectorAll(".st").forEach(b=>b.setAttribute("aria-selected",b.id==="tab-"+id));
+  document.getElementById("main").style.setProperty("--c",s.c);
+  document.getElementById("title").textContent=s.name;
+  document.getElementById("def").textContent=s.def;
+  const al=document.getElementById("alert");al.textContent=s.alert||"";al.classList.toggle("show",!!s.alert);
+  canvas.setAttribute("aria-labelledby","tab-"+id);
+  renderJourney(s);
+  const idx=s.b.map((b,i)=>[b,i]);
+  const ord={from:0,warn:1,stage:2,script:3,reason:4,next:5,rule:6};
+  let L,R;
+  if(MQ.matches){R=idx.slice().sort((a,b)=>ord[a[0].kind]-ord[b[0].kind]);L=[]}
+  else{
+    R=idx.filter(([b])=>["stage","script","next"].includes(b.kind));
+    L=idx.filter(([b])=>!["stage","script","next"].includes(b.kind)).sort((a,b)=>ord[a[0].kind]-ord[b[0].kind]);
+  }
+  canvas.innerHTML=`<div class="mm enter" style="--c:${s.c}"><svg aria-hidden="true"></svg>
+    <div class="side left">${L.map(([b,i])=>branchHTML(b,i)).join("")}</div>
+    <div class="center"><span class="cap">Trạng thái Lead</span><b>${esc(s.name)}</b></div>
+    <div class="side right">${R.map(([b,i])=>branchHTML(b,i)).join("")}</div></div>`;
+  canvas.querySelectorAll(".bnode").forEach(bn=>bn.addEventListener("click",()=>{
+    const br=bn.parentElement;br.classList.toggle("closed");bn.setAttribute("aria-expanded",!br.classList.contains("closed"));draw();
+  }));
+  canvas.querySelectorAll(".st-pill,.kid.ts").forEach(k=>k.addEventListener("click",()=>select(k.dataset.go)));
+  if(push){try{history.replaceState(null,"","#"+id)}catch(e){}}
+  canvas.scrollTo({top:0,left:0});
+  requestAnimationFrame(()=>{fit();draw()});
+}
+function fit(){
+  const mm=canvas.querySelector(".mm");if(!mm)return;
+  mm.style.zoom=1;if(MQ.matches)return;
+  const avail=canvas.clientWidth-64,w=mm.offsetWidth;
+  if(w>avail)mm.style.zoom=Math.max(.72,avail/w);
+}
+function rel(el,mm){let x=0,y=0,n=el;while(n&&n!==mm){x+=n.offsetLeft;y+=n.offsetTop;n=n.offsetParent}
+  const w=el.offsetWidth,h=el.offsetHeight;return{l:x,r:x+w,t:y,b:y+h,y:y+h/2}}
+function curve(x1,y1,x2,y2){const dx=(x2-x1)*.5;return `M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`}
+function elbow(x,y1,x2,y2){const r=Math.min(10,Math.abs(y2-y1));return `M${x},${y1} V${y2-r} Q${x},${y2} ${x+r},${y2} H${x2}`}
+function draw(){
+  const mm=canvas.querySelector(".mm");if(!mm||!current)return;
+  const svg=mm.querySelector("svg");
+  svg.setAttribute("width",mm.offsetWidth);svg.setAttribute("height",mm.offsetHeight);
+  const mobile=MQ.matches,c=rel(mm.querySelector(".center"),mm);let main="",sub="",link="";
+  mm.querySelectorAll(".branch").forEach(br=>{
+    const left=br.parentElement.classList.contains("left"),bn=rel(br.querySelector(".bnode"),mm);
+    main+=`<path d="${mobile?elbow(c.l+18,c.b,bn.l,bn.y):left?curve(c.l,c.y,bn.r,bn.y):curve(c.r,c.y,bn.l,bn.y)}"/>`;
+    if(br.classList.contains("closed"))return;
+    br.querySelectorAll(":scope > .kids > .kid, :scope > .kids > .krow > .kid").forEach(k=>{const kr=rel(k,mm);
+      sub+=`<path d="${mobile?elbow(bn.l+16,bn.b,kr.l,kr.y):left?curve(bn.l,bn.y,kr.r,kr.y):curve(bn.r,bn.y,kr.l,kr.y)}"/>`;});
+    if(!mobile)br.querySelectorAll(".kid[data-link]").forEach(a=>{
+      const t=br.querySelector(`:scope > .kids > .kid[data-go="${a.dataset.link}"]`);if(!t)return;
+      const A=rel(a,mm),T=rel(t,mm),x=Math.max(A.r,T.r),bx=x+34;
+      link+=`<path d="M${A.r},${A.y} C${bx},${A.y} ${bx},${T.y} ${T.r+6},${T.y}"/>`;});
+    br.querySelectorAll(".krow").forEach(row=>{const pr=rel(row.firstElementChild,mm);
+      row.querySelectorAll(".ksub > .kid").forEach(k=>{const kr=rel(k,mm);
+        sub+=`<path d="${mobile?elbow(pr.l+16,pr.b,kr.l,kr.y):left?curve(pr.l,pr.y,kr.r,kr.y):curve(pr.r,pr.y,kr.l,kr.y)}"/>`;});});
+  });
+  svg.innerHTML=`<g fill="none" stroke="${current.c}" stroke-linecap="round"><g stroke-width="2.5">${main}</g><g stroke-width="1.4" stroke-opacity=".5">${sub}</g><g stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#ah)">${link}</g></g><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${current.c}"/></marker></defs>`;
+}
+function setAll(open){canvas.querySelectorAll(".branch").forEach(b=>{b.classList.toggle("closed",!open);b.querySelector(".bnode").setAttribute("aria-expanded",open)});draw()}
+document.getElementById("openAll").onclick=()=>setAll(true);
+document.getElementById("closeAll").onclick=()=>setAll(false);
+let rw=0;new ResizeObserver(()=>{if(canvas.clientWidth!==rw){rw=canvas.clientWidth;fit()}draw()}).observe(canvas);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{fit();draw()});
+track.addEventListener("keydown",e=>{
+  if(!["ArrowDown","ArrowUp","ArrowLeft","ArrowRight"].includes(e.key))return;
+  e.preventDefault();const i=S.indexOf(current),d=(e.key==="ArrowDown"||e.key==="ArrowRight")?1:-1;
+  const n=S[(i+d+S.length)%S.length];select(n.id);document.getElementById("tab-"+n.id).focus();
+});
+const h=location.hash.slice(1);select(byId[h]?h:"khtn",false);
+</script>
+</body>
+</html>
